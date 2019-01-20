@@ -1,0 +1,13 @@
+## Interface: 80100
+## Title: SixthSense
+## Notes: Shows enemy target
+## Author: OperationXen
+## Version: 0.1
+## SavedVariables: SixthSenseDB
+
+# Sources
+sixthsense_utils.lua
+sixthsense_options.lua
+sixthsense_targets.lua
+
+sixthsense_main.lua
