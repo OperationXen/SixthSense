@@ -32,3 +32,13 @@ function GUIDIsFriendlyPlayer(target_guid)
 		return false
 	end
 end
+
+function print_update(friendly_unit_id, hostile_guid)
+	if hostile_guid ~= nil and starts_with(hostile_guid, "Player") then
+		className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID(hostile_guid)
+	
+		print(friendly_unit_id .. " targeted by [" .. className .. "] - " .. name)
+	else
+		print(friendly_unit_id .. " targeted by " .. hostile_guid)
+	end
+end

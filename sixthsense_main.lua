@@ -29,8 +29,10 @@ end
 
 -- Perform a scan and update the model
 function sixthsense_frame:do_update()
-	self:do_playertarget_update()
+	self.target_state:verify_existing_targets()							-- check the current state, remove anyone who's died or not visible anymore
+	self:do_playertarget_update()										-- always want to keep on top of the targeted unit
 	
+	-- scan for new information
 	self:do_arenaunit_update()
 	self:do_nameplate_sweep()
 end
@@ -46,7 +48,8 @@ function sixthsense_frame:event_handler(event, arg1, arg2, arg3, arg4, arg5)
 	end
 	
 	if (event == "GROUP_ROSTER_UPDATE") then							-- when the party changes, we need to update the target model
-		check_targeting_state()
+		-- TODO - this is not the best way to handle this, its a bit of a shortcutty hack
+		self.target_state = SixthSense_StateModel.new()					-- easiest way to update the target model is to tear it down and rebuild it...
 	end
 	
 end
