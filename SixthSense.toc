@@ -4,10 +4,16 @@
 ## Author: OperationXen
 ## Version: 0.1
 ## SavedVariables: SixthSenseDB
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+
+# XML files
+embeds.xml
 
 # Sources
+
 sixthsense_utils.lua
-sixthsense_options.lua
 sixthsense_targets.lua
 
-sixthsense_main.lua
+Core.lua
+Options.lua
