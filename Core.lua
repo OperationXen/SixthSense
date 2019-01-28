@@ -1,14 +1,17 @@
 -- Contains Ace stuff for creating addon
 
 SixthSense = LibStub("AceAddon-3.0"):NewAddon("SixthSense", "AceConsole-3.0", "AceEvent-3.0")
+AceGUI = LibStub("AceGUI-3.0")
 
 -- Called with the addon is initialised - ie at load time
 function SixthSense:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SixthSense", SixthSense_options)
+	self.options_db = LibStub("AceDB-3.0"):New("SixthSenseDB", defaults, true)
+	
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SixthSense", "Sixth Sense")
+	
 	self:RegisterChatCommand("sixthsense", "ChatCommand")
 	self:RegisterChatCommand("6s", "ChatCommand")
-	SixthSense.message = "I see pwnd people..."
 end
 
 -- Called when the addon is enabled, so when the UI loads
@@ -17,6 +20,8 @@ function SixthSense:OnEnable()
 
 	self:RegisterEvent("UNIT_TARGET")				-- A unit we can see has changed its target
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")		-- The player's group / raid has changed
+	
+	self:DrawTargetFrame("player")
 end
 
 function SixthSense:OnDisable()
@@ -26,7 +31,8 @@ end
 -- Handles a user doing /sixthsense slash command
 function SixthSense:ChatCommand(input)
 	if not input or input:trim() == "" then
-		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)		-- first time it opens the wrong thing,
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)		-- calling this twice is a workaround...
 	else
 		-- extended options
 		LibStub("AceConfigCmd-3.0"):HandleCommand("sixthsense", "SixthSense", input)
@@ -48,7 +54,7 @@ function SixthSense:GROUP_ROSTER_UPDATE()
 	self.target_state = SixthSense_StateModel.new()					-- easiest way to update the target model is to tear it down and rebuild it...
 end
 
--- ------------------------------------------------------------------------ --
+-- ------------------------*------------------------------------------------ --
 
 -- Check the target of the players current target
 function SixthSense:do_playertarget_update()
@@ -90,8 +96,35 @@ function SixthSense:OnUpdate(elapsed_time)
 	end
 	self.time_since_update = self.time_since_update + elapsed_time
 	
-	if self.time_since_update > 0.5 then								-- check if the update period has expired or not
-		self.time_since_update = 0										-- reset the counter
+	if self.time_since_update > self.options_db.char.update_frequency then	-- check if the update period has expired or not
+		self.time_since_update = 0											-- reset the counter
 		self:do_update()
 	end
+end
+
+-- ---------------------------------------------------------- --
+function SixthSense:DrawTargetFrame(unit_id)
+	local width = 128 * self.options_db.profile.frame_scale
+	local height = 64 * self.options_db.profile.frame_scale
+	
+	local x_pos = self.options_db.profile.frame_loc[unit_id].x
+	local y_pos = self.options_db.profile.frame_loc[unit_id].y
+	
+	local frame = CreateFrame("Frame", nil, UI_PARENT)
+	frame:SetFrameStrata("BACKGROUND")
+	frame:SetWidth(width) 			-- Set these to whatever height/width is needed 
+	frame:SetHeight(height) 		-- for your Texture
+
+	local t = frame:CreateTexture(nil,"BACKGROUND")
+	t:SetTexture("Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
+	t:SetAllPoints(frame)
+	frame.texture = t
+
+	frame:SetPoint("CENTER", x_pos, y_pos)
+	frame:Show()
+end
+
+function SixthSense:UpdateFrames()
+	print("redrawing...")
+	--self.DrawTargetFrame("player")
 end
