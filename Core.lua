@@ -21,7 +21,7 @@ function SixthSense:OnEnable()
 	self:RegisterEvent("UNIT_TARGET")				-- A unit we can see has changed its target
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")		-- The player's group / raid has changed
 	
-	self:DrawTargetFrame("player")
+	self:UpdateFrames()
 end
 
 function SixthSense:OnDisable()
@@ -103,12 +103,9 @@ function SixthSense:OnUpdate(elapsed_time)
 end
 
 -- ---------------------------------------------------------- --
-function SixthSense:DrawTargetFrame(unit_id)
+function SixthSense:CreateTargetFrame(unit_id, x_pos, y_pos)
 	local width = 128 * self.options_db.profile.frame_scale
 	local height = 64 * self.options_db.profile.frame_scale
-	
-	local x_pos = self.options_db.profile.frame_loc[unit_id].x
-	local y_pos = self.options_db.profile.frame_loc[unit_id].y
 	
 	local frame = CreateFrame("Frame", nil, UI_PARENT)
 	frame:SetFrameStrata("BACKGROUND")
@@ -126,5 +123,11 @@ end
 
 function SixthSense:UpdateFrames()
 	print("redrawing...")
-	--self.DrawTargetFrame("player")
+	unit_id = "player"
+	
+	if self.options_db.profile.active_solo then
+		local x_pos = self.options_db.profile.frame_loc[unit_id].x
+		local y_pos = self.options_db.profile.frame_loc[unit_id].y
+		self.frames[unit_id] = self:CreateTargetFrame(unit_id, x_pos, y_pos)
+	end
 end

@@ -27,6 +27,7 @@ defaults = {
 		ignore_mobs = true,
 		update_frequency = 1,
 		
+		active_solo = false,
 		frame_scale = 2,
 		frame_loc = {
 			["player"] = { x = 0, y = 0 },
@@ -75,8 +76,16 @@ SixthSense_options = {
 			name = "Layout - Solo",
 			desc = "Display positions",
 			type = "group",
-			order = 1,
+			inline = true,
+			order = 2,
 			args = {
+				active = {
+					name = "Active",
+					desc = "Enable or Disable SixthSense when solo",
+					type = "toggle",
+					get = function(info) return SixthSense.options_db.profile.active_solo end,
+					set = function(info, val) SixthSense.options_db.profile.active_solo = val end
+				},
 				player_frame_scale = {
 					name = "Scale",
 					desc = "Frame scale",
@@ -117,7 +126,6 @@ SixthSense_options = {
 					get = function(info) return SixthSense.options_db.profile.frame_loc.player.y end,
 					set = function(info, val) SixthSense.options_db.profile.frame_loc.player.y = val end
 				},
-				
 			},
 		},	-- end of frame_locations group		
 	},
