@@ -8,20 +8,25 @@ function SixthSense:OnInitialize()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SixthSense", SixthSense_options)
 	self.options_db = LibStub("AceDB-3.0"):New("SixthSenseDB", defaults, true)
 	
+	-- Add an options menu
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SixthSense", "Sixth Sense")
 	
+	-- add two shortcuts for chat box commands - "sixthsense" or "6s"
 	self:RegisterChatCommand("sixthsense", "ChatCommand")
 	self:RegisterChatCommand("6s", "ChatCommand")
 end
 
 -- Called when the addon is enabled, so when the UI loads
 function SixthSense:OnEnable()
-	self.Model = SixthSense_StateModel.new()
+	self.StateModel = SixthSense_StateModel.new()	-- create a new model, getting current party state
+	self.UIFrames = SixthSense_GUI.new()			-- Create the frames to hold the UI
 
 	self:RegisterEvent("UNIT_TARGET")				-- A unit we can see has changed its target
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")		-- The player's group / raid has changed
 	
-	self:UpdateFrames()
+	self.UIFrames.Initialise()
+	self.UIFrames.CreateTestFrame()
+	self:UpdateFrames()								-- do the UI draw
 end
 
 function SixthSense:OnDisable()
@@ -32,7 +37,8 @@ end
 function SixthSense:ChatCommand(input)
 	if not input or input:trim() == "" then
 		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)		-- first time it opens the wrong thing,
-		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)		-- calling this twice is a workaround...
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)		-- calling this twice is a known workaround...
+																	-- Yeah, I know.
 	else
 		-- extended options
 		LibStub("AceConfigCmd-3.0"):HandleCommand("sixthsense", "SixthSense", input)
@@ -42,32 +48,32 @@ end
 
 -- event handlers
 function SixthSense:UNIT_TARGET(unit_id)
-	-- when a unit changes target this function is called, param is unit ID (nameplateN, arenaN etc)
-	target_guid = get_target_information(unit_id)
-	if GUIDIsFriendlyPlayer(target_guid) then
-		self.Model:process_target_info(unit_id, target_guid)
+	-- Called when unit changes target, param is unit ID eg "nameplateN", "arenaN"
+	target_guid = get_target_GUID(unit_id)			-- Get the GUID of the target of the specified unit
+	if GUIDIsFriendlyPlayer(target_guid) then		-- Only interested when target is friendly
+		self.StateModel:process_target_info(unit_id, target_guid)
 	end
 end
 
 function SixthSense:GROUP_ROSTER_UPDATE()
-	-- should probably do something to handle group changes a little more efficiently...
-	self.target_state = SixthSense_StateModel.new()					-- easiest way to update the target model is to tear it down and rebuild it...
+	-- TODO creating a new model is an inefficient approach
+	self.StateModel = SixthSense_StateModel.new()		-- easiest way to update the target model is to tear it down and rebuild it...
 end
 
 -- ------------------------*------------------------------------------------ --
 
 -- Check the target of the players current target
 function SixthSense:do_playertarget_update()
-	target_guid = get_target_information("target")
-	self.target_state:process_target_info("target", target_guid)
+	target_guid = get_target_GUID("target")			-- get the GUID of players current target's target
+	self.StateModel:process_target_info("target", target_guid)
 end
 
 -- Scan arena1/2/3 and update the model based on their targets
 function SixthSense:do_arenaunit_update()
 	for i = 1,3 do
 		unit_id = "arena" .. i
-		target_guid = get_target_information(unit_id)
-		self.target_state:process_target_info(unit_id, target_guid)
+		target_guid = get_target_GUID(unit_id)
+		self.StateModel:process_target_info(unit_id, target_guid)
 	end
 end
 
@@ -75,14 +81,19 @@ end
 function SixthSense:do_nameplate_sweep()
 	for i = 1, 40 do
 		unit_id = "nameplate" .. i
-		target_guid = get_target_information(unit_id)
-		self.target_state:process_target_info(unit_id, target_guid)
+		target_guid = get_target_GUID(unit_id)
+		self.StateModel:process_target_info(unit_id, target_guid)
 	end
 end
 
+function SixthSense:do_update()
+	print("updating...")
+	self:PerformScan()
+end
+
 function SixthSense:PerformScan()
-	self.target_state:verify_existing_targets()							-- check the current state, remove anyone who's died or not visible anymore
-	self:do_playertarget_update()										-- always want to keep on top of the targeted unit's target
+	self.StateModel:verify_existing_targets()			-- check the current state, remove anyone who's died or not visible anymore
+	self:do_playertarget_update()					-- always want to keep on top of the targeted unit's target
 	
 	-- scan for new information
 	self:do_arenaunit_update()
@@ -102,24 +113,6 @@ function SixthSense:OnUpdate(elapsed_time)
 	end
 end
 
--- ---------------------------------------------------------- --
-function SixthSense:CreateTargetFrame(unit_id, x_pos, y_pos)
-	local width = 128 * self.options_db.profile.frame_scale
-	local height = 64 * self.options_db.profile.frame_scale
-	
-	local frame = CreateFrame("Frame", nil, UI_PARENT)
-	frame:SetFrameStrata("BACKGROUND")
-	frame:SetWidth(width) 			-- Set these to whatever height/width is needed 
-	frame:SetHeight(height) 		-- for your Texture
-
-	local t = frame:CreateTexture(nil,"BACKGROUND")
-	t:SetTexture("Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp")
-	t:SetAllPoints(frame)
-	frame.texture = t
-
-	frame:SetPoint("CENTER", x_pos, y_pos)
-	frame:Show()
-end
 
 function SixthSense:UpdateFrames()
 	print("redrawing...")

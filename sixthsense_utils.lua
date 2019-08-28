@@ -6,11 +6,10 @@ function starts_with(str, start)
 end
 
 -- Helper function, from a unit id pull out and process target information
-function get_target_information(unit_id)
-	if UnitExists(unit_id) and 
-		(not UnitIsFriend("player", unit_id)) then							-- we're only interested in hostile player's targetting decisions
-		
-		target_guid = UnitGUID(unit_id .. "target")							-- get the GUID of the new target
+function get_target_GUID(unit_id)
+	-- we're only interested in hostile player's targeting decisions		
+	if UnitExists(unit_id) and (not UnitIsFriend("player", unit_id)) then			
+		target_guid = UnitGUID(unit_id .. "target")		-- get the GUID of the new target
 		return target_guid
 	else
 		return nil
@@ -21,7 +20,7 @@ end
 function GUIDIsFriendlyPlayer(target_guid)
 	if target_guid == nil then
 		return false
-	elseif (not starts_with(target_guid, "Player")) then					-- Don't bother if the GUID isn't at least a player ID
+	elseif (not starts_with(target_guid, "Player")) then	-- Don't bother if the GUID isn't at least a player ID
 		return false
 	end
 	

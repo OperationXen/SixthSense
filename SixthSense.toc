@@ -14,6 +14,7 @@ embeds.xml
 
 sixthsense_utils.lua
 sixthsense_targets.lua
+sixthsense_gui.lua
 
 Core.lua
 Options.lua
