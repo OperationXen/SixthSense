@@ -9,7 +9,7 @@ function SixthSense_StateModel:new()
 	setmetatable(self, SixthSense_StateModel);
 	
 	self:add_unit("player")							-- we're always going to have a player unit
-	for i = 1, 4 do
+	for i = 1, 9 do
 		unit_id = "party" .. i
 		if UnitExists(unit_id) then					-- but we may or may not have a party
 			self:add_unit(unit_id)
@@ -87,7 +87,7 @@ function SixthSense_StateModel:is_targeted_by(unit_id, hostile_unit_guid)
 end
 
 -- Process the information we've gathered, updating the model
-function SixthSense_StateModel:process_target_info(targeting_unit_id, target_guid)
+function SixthSense_StateModel:process_targetting_event(targeting_unit_id, target_guid)
 	-- sanity check first, target_guid exists and is a player
 	if (target_guid == nil) then			
 		return
@@ -105,9 +105,16 @@ function SixthSense_StateModel:process_target_info(targeting_unit_id, target_gui
 			
 			-- update model
 			-- this hostile isn't now targeting what it was, so we remove it from that user
-			self:remove_targeting_hostile(hostile_unit_guid)
-			-- update the friendly player now targeted by hostile
+			-- if it was previously targeting a different friendly in the model, known_hostile will be TRUE
+			-- if its a new hostile player barrelling in, known_hostile should be FALSE
+			known_hostile = self:remove_targeting_hostile(hostile_unit_guid)
+			
+			-- update the model to show friendly player now targeted by hostile
 			self:add_targeting_hostile(friendly_unit_id, targeting_unit_id, hostile_unit_guid)
+			if not known_hostile then
+				print_update(friendly_unit_id, hostile_unit_guid)		-- debug output
+				-- https://wow.gamepedia.com/API_PlaySound play a sound, perhaps some animation?
+			end
 									
 			print_update(friendly_unit_id, hostile_unit_guid) 	-- debugging line
 		end

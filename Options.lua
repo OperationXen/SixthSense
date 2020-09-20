@@ -1,3 +1,5 @@
+
+
 -- getter and setter methods for options table
 
 function SixthSense:GetMessage(info)
@@ -28,20 +30,13 @@ defaults = {
 		update_frequency = 1,
 		
 		active_solo = false,
-		frame_scale = 2,
-		frame_loc = {
-			["player"] = { x = 0, y = 0 },
-			["party1"] = { x = 0, y = 40 },
-			["party2"] = { x = 0, y = 80 },
-			["party3"] = { x = 0, y = 120 },
-			["party4"] = { x = 0, y = 160 },
-		},
+		player_frame_scale = 2,
+		
     },
 }
-
-
 -- options table for ace_config
-SixthSense_options = { 
+
+configuration_options = { 
     name = "Sixth Sense Target Detection",
     handler = SixthSense,
     type = "group",
@@ -57,14 +52,14 @@ SixthSense_options = {
 			args = {
 				ignore_mobs = {
 					name = "Ignore non-player mobs",
-					desc = "Description text I guess",
+					desc = "Track monsters as well as player targeting",
 					type = "toggle",
 					set = function(info,val) SixthSense.options_db.profile.ignore_mobs = val end,
 					get = function(info) return SixthSense.options_db.profile.ignore_mobs end
 				},
 				update_frequency = {
 					name = "Update Speed",
-					desc = "Updates per second (may cause high CPU use)",
+					desc = "Seconds between updates (may cause high CPU use)",
 					type = "select",
 					values = {[2] = "Slow (2s)", [1] = "Normal (1s)", [0.5] = "Fast (0.5s)", [0.2] = "v. Fast (0.2s)", [0.1] = "Extreme (0.1s)"},
 					set = function(info,val) SixthSense.options_db.profile.update_frequency = val end,
@@ -79,7 +74,7 @@ SixthSense_options = {
 			inline = true,
 			order = 2,
 			args = {
-				active = {
+				active_solo = {
 					name = "Active",
 					desc = "Enable or Disable SixthSense when solo",
 					type = "toggle",
@@ -88,7 +83,7 @@ SixthSense_options = {
 				},
 				player_frame_scale = {
 					name = "Scale",
-					desc = "Frame scale",
+					desc = "Size of warning scale",
 					type = "range",
 					min = 0.1,
 					max = 2.5,
@@ -107,10 +102,8 @@ SixthSense_options = {
 					softMin = -800,
 					softMax = 800,
 					step = 1,
-					unit_id = "player",		-- putting this here to be passed into Set function via info param
-					-- arrays start at 0. Fuck LUA.
 					get = function(info) return SixthSense.options_db.profile.frame_loc.player.x end,
-					set = "SetFrameXOffset"
+					set = function(info, val) SixthSense.options_db.profile.frame_loc.player.x = val end
 				},
 				frame_y_location = {
 					name = "Y - Axis Offset",
@@ -122,7 +115,6 @@ SixthSense_options = {
 					softMin = -800,
 					softMax = 800,
 					step = 1,
-					-- arrays start at 0. Fuck LUA.
 					get = function(info) return SixthSense.options_db.profile.frame_loc.player.y end,
 					set = function(info, val) SixthSense.options_db.profile.frame_loc.player.y = val end
 				},
